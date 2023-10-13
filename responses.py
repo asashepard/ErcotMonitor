@@ -1,9 +1,6 @@
-import discord
-
 import main
 from datetime import datetime
 import matplotlib.pyplot as plt
-
 
 def handle_response(message) -> list:
     if message == '!ercot':
@@ -28,7 +25,11 @@ def generate_report() -> list:
 def get_data() -> str:
     data_str = ''
     d = main.data_class
-    for i in range(1, len(d.categories) - 5):  # -5 excludes DC data
+    data_str += '- ' + d.categories[1] + ': ' + str(d.last_update[1]) + ' ' + get_momentum_emoji(d.momentum[1])
+    if float(d.last_update[1]) < 59.4:
+        data_str += ' :warning: @everyone'  # todo make automated
+    data_str += '\n'
+    for i in range(2, len(d.categories) - 5):  # -5 excludes DC data
         data_str += '- ' + d.categories[i] + ': ' + str(d.last_update[i]) + ' ' + get_momentum_emoji(d.momentum[i]) + '\n'
     return data_str
 
@@ -50,5 +51,5 @@ def update_plot() -> None:
     fig, ax = plt.subplots()
     labels = d.categories[4], d.categories[6]
     ax.pie([d.last_update[4], d.last_update[6]], labels=labels)
-    plt.savefig('plot.png')
-    plt.close(fig)
+    with open('plot.png', 'w'):
+        plt.savefig('plot.png')

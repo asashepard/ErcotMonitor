@@ -11,14 +11,16 @@ import os
 
 TOKEN = os.environ.get('token')
 GRAPH = discord.File('plot.png')
+channels = []
+warn = False
 
 
-async def send_message(message, user_message):
+async def send_message(channel, user_message):
     try:
         response = responses.handle_response(user_message)
-        await message.channel.send(response[0])
+        await channel.send(response[0])
         if response[1]:
-            await message.channel.send(file=GRAPH)
+            await channel.send(file=GRAPH)
     except Exception as e:
         print(e)
 
@@ -38,7 +40,7 @@ def call_updates(seconds):
         main.data_class.scrape_data()
         time.sleep(seconds)
 
-# todo run automated / live updates
+# todo run live general updates
 
 # todo run emergency notification updates based on values
 
@@ -51,7 +53,7 @@ def run_discord_bot():
     @client.event
     async def on_ready():
         print(f'{client.user} has started running')
-        await call_updates(5)
+        await call_updates(30)
 
     @client.event
     async def on_message(message):
@@ -64,6 +66,7 @@ def run_discord_bot():
 
         print(f"{username} said : '{user_message}' ({channel})")
 
-        await send_message(message, user_message)
+        channels.append(message.channel)
+        await send_message(message.channel, user_message)
 
     client.run(TOKEN)

@@ -55,7 +55,7 @@ class Data:
             # todo update dataframe
             # todo update csv
             print(layer)
-            for i in range(1, self.last_update.__len__()):
+            for i in range(1, self.last_update.__len__()):  # todo make way for momentum to be reset to 0
                 if self.last_update[i] < layer[i]:  # increasing
                     if self.momentum[i] <= 0:
                         self.momentum[i] = 1
