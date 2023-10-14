@@ -1,37 +1,80 @@
+import discord
+
+import bot
 import main
 from datetime import datetime
 import matplotlib.pyplot as plt
 
-def handle_response(message) -> list:
+
+def handle_response(message) -> bool:
     if message == '!ercot':
-        return generate_report()
-    # todo simple help message on mention (bot.py)
+        generate_report()
+        return False
+    if message == '!ercotcreate':
+        generate_repeating()
+        return True  # should repeat (defaults subsequently updated in bot.py)
+    elif '<@1162096462633631773>' in message:  # mention of ErcotMonitor
+        generate_help()
+        return False
 
 
-def generate_report() -> list:
-    report = []
-    text = ''
-    time = datetime.now()
-    time_str = f'{time.year}-{time.month}-{time.day} at {time.hour}:{time.minute}:{time.second}'  # todo fix single-digit formatting
-    text += f':newspaper2:  **Report ' + time_str + ' on state of ERCOT grid**\n'
-    text += 'source: *https://www.ercot.com/content/cdr/html/real_time_system_conditions.html*\n'
-    text += get_data()
-    report.append(text)
+# GENERATE METHODS #
+
+
+def generate_report() -> discord.Embed:
+    bot.embed = generate_embed(title=':newspaper2:  **Detailed report on current state of ERCOT grid**',
+                               colour=discord.Colour.blue(),
+                               field_name='Complete data',
+                               field_values=get_data(),
+                               footer='generated ' + get_formatted_time(True))
+    return bot.embed
+
+
+def generate_repeating() -> discord.Embed:
+    bot.embed = generate_embed(title=':newspaper2: :red_circle:  **Live report on ERCOT grid health**',
+                               colour=discord.Colour.red(),
+                               field_name='Vital indicators',
+                               field_values=get_data(tuple([1, 4, 6])),
+                               footer='updated ' + get_formatted_time())
+    return bot.embed
+
+
+def generate_embed(title, colour, field_name, field_values, footer) -> discord.Embed:
+    embed = discord.Embed(title=title, description='Source: *' + main.data_class.URL + '*', colour=colour)
+    embed.add_field(name=field_name, value=field_values)
+    embed.set_footer(text=footer)
     update_plot()
-    report.append(True)  # indicates image should be sent
-    return report
+    embed.set_image(url='attachment://plot.png')
+    return embed
 
 
-def get_data() -> str:
+def generate_warning() -> str:
+    return ':rotating_light: @everyone **POWER EMERGENCY**\nCurrent frequency: ' + main.data_class.last_update[1] + ' hertz'
+
+
+def generate_help() -> bool:
+    text = ':grey_question: **Commands**\n'
+    text += '**!ercot**\n- generates simple + visual report on grid status\n'
+    text += '**!ercot_create**\n- generates self-updating report on grid status (required administrator permission)\n'
+    return False
+
+
+# ACCESS METHODS #
+
+
+def get_data(spec=tuple(range(0, main.data_class.categories.__len__()))) -> str:
     data_str = ''
     d = main.data_class
-    data_str += '- ' + d.categories[1] + ': ' + str(d.last_update[1]) + ' ' + get_momentum_emoji(d.momentum[1])
-    if float(d.last_update[1]) < 59.4:
-        data_str += ' :warning: @everyone'  # todo make automated
-    data_str += '\n'
-    for i in range(2, len(d.categories) - 5):  # -5 excludes DC data
-        data_str += '- ' + d.categories[i] + ': ' + str(d.last_update[i]) + ' ' + get_momentum_emoji(d.momentum[i]) + '\n'
+    for i in range(1, len(d.categories) - 5):  # -5 excludes DC data
+        if i in spec:
+            data_str += '- ' + d.categories[i] + ': ' + str(d.last_update[i]) + ' ' + get_momentum_emoji(d.momentum[i])
+            if i == 1 and float(d.last_update[1]) < 59.7:
+                data_str += ' :warning:'
+            data_str += '\n'
     return data_str
+
+
+# UTIL METHODS #
 
 
 def get_momentum_emoji(momentum) -> str:
@@ -46,10 +89,15 @@ def get_momentum_emoji(momentum) -> str:
     return ':arrow_right:'
 
 
+def get_formatted_time(seconds=False) -> str:
+    if seconds:
+        return datetime.now().strftime("%m/%d/%Y at %H:%M:%S")
+    return datetime.now().strftime("%m/%d/%Y at %H:%M")
+
+
 def update_plot() -> None:
     d = main.data_class
     fig, ax = plt.subplots()
     labels = d.categories[4], d.categories[6]
     ax.pie([d.last_update[4], d.last_update[6]], labels=labels)
-    with open('plot.png', 'w'):
-        plt.savefig('plot.png')
+    plt.savefig('plot.png')
