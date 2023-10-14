@@ -55,16 +55,16 @@ class Data:
             # todo update dataframe
             # todo update csv
             print(layer)
-            for i in range(1, self.last_update.__len__()):  # todo make way for momentum to be reset to 0
+            for i in range(1, self.last_update.__len__()):
                 if self.last_update[i] < layer[i]:  # increasing
                     if self.momentum[i] <= 0:
-                        self.momentum[i] = 1
+                        self.momentum[i] = 0
                     else:
                         self.momentum[i] += 1
                 elif self.last_update[i] > layer[i]:  # decreasing
                     if self.momentum[i] <= 0:
                         self.momentum[i] -= 1
                     else:
-                        self.momentum[i] = -1
+                        self.momentum[i] = 0
 
             self.last_update = layer
