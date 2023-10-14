@@ -69,7 +69,7 @@ def run_discord_bot():
     @bot.event
     async def on_update_message():
         await message_def[0].edit(embed=responses.generate_repeating())
-        if float(main.data_class.last_update[1]) < 59.4:
+        if float(main.data_class.last_update[main.data_class.nwd]) < 59.4:
             await message_def[0].channel.send(responses.generate_warning())
 
     bot.run(TOKEN)

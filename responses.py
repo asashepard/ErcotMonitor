@@ -34,7 +34,7 @@ def generate_repeating() -> discord.Embed:
     bot.embed = generate_embed(title=':newspaper2: :red_circle:  **Live report on ERCOT grid health**',
                                colour=discord.Colour.red(),
                                field_name='Vital indicators',
-                               field_values=get_data(tuple([1, 4, 6])),
+                               field_values=get_data(tuple([main.data_class.nwd, main.data_class.nwd + 3, main.data_class.nwd + 5])),
                                footer='updated ' + get_formatted_time())
     return bot.embed
 
@@ -49,7 +49,7 @@ def generate_embed(title, colour, field_name, field_values, footer) -> discord.E
 
 
 def generate_warning() -> str:
-    return ':rotating_light: @everyone **POWER EMERGENCY**\nCurrent frequency: ' + main.data_class.last_update[1] + ' hertz'
+    return ':rotating_light: @everyone **POWER EMERGENCY**\nCurrent frequency: ' + main.data_class.last_update[main.data_class.nwd] + ' hertz'
 
 
 def generate_help() -> bool:
@@ -65,10 +65,10 @@ def generate_help() -> bool:
 def get_data(spec=tuple(range(0, main.data_class.categories.__len__()))) -> str:
     data_str = ''
     d = main.data_class
-    for i in range(1, len(d.categories) - 5):  # -5 excludes DC data
+    for i in range(main.data_class.nwd, len(d.categories) - 5):  # -4 excludes DC data
         if i in spec:
             data_str += '- ' + d.categories[i] + ': ' + str(d.last_update[i]) + ' ' + get_momentum_emoji(d.momentum[i])
-            if i == 1 and float(d.last_update[1]) < 59.7:
+            if i == 1 and float(d.last_update[d.nwd]) < 59.7:
                 data_str += ' :warning:'
             data_str += '\n'
     return data_str
@@ -98,6 +98,6 @@ def get_formatted_time(seconds=False) -> str:
 def update_plot() -> None:
     d = main.data_class
     fig, ax = plt.subplots()
-    labels = d.categories[4], d.categories[6]
-    ax.pie([d.last_update[4], d.last_update[6]], labels=labels)
+    labels = d.categories[main.data_class.nwd + 3], d.categories[main.data_class.nwd + 5]
+    ax.pie([d.last_update[main.data_class.nwd + 3], d.last_update[main.data_class.nwd + 5]], labels=labels)
     plt.savefig('plot.png')

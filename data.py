@@ -1,3 +1,4 @@
+import csv
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
@@ -8,7 +9,9 @@ class Data:
 
     def __init__(self):
         self.URL = 'https://www.ercot.com/content/cdr/html/real_time_system_conditions.html'
-        self.categories = ['time',
+        self.nwd = 2  # non-website data, number of columns not scraped using URL
+        self.categories = ['time',  # unique
+                           'hourofday',
                            'Current Frequency',
                            'Instantaneous Time Error',
                            'Consecutive BAAL Clock-Minute Exceedances',
@@ -24,38 +27,43 @@ class Data:
                            'DC_R (Railroad)',
                            'DC_S (Eagle Pass)']
         self.df = pd.DataFrame(columns=self.categories)
-        self.last_update = []  # todo get from csv if there
-        self.momentum = [0]*self.categories.__len__()  # todo replace functionality with dataframe reference
+        self.last_update = []
+        self.momentum = [0]*self.categories.__len__()
         self.continue_running = False
 
     def setup(self):
         self.continue_running = True
-        self.df.update(pd.read_csv('data.csv'))
+        with open('data.csv', 'r') as csvfile:
+            csv_dict = [row for row in csv.DictReader(csvfile)]
+            if len(csv_dict) != 0:
+                self.df = pd.read_csv('data.csv')  # put csv into dataframe
         self.last_update.clear()
         if self.df.__len__() > 0:
-            for i in self.df.iloc[self.df.__len__() - 1]:
-                self.last_update.append(i)
+            for i in self.df.loc[len(self.df.index) - 1]:  # 1: excludes index
+                self.last_update.append(i)  # update last_update array with last dataframe entry
 
     def scrape_data(self):
         page = requests.get(self.URL)
         soup = BeautifulSoup(page.text, 'lxml')
 
         table = soup.find('table')
-        layer = [datetime.now().timestamp()]
+        layer = [datetime.now().timestamp(), round(int(datetime.now().hour) + datetime.now().minute / 60 + datetime.now().second / 3600, 4)]
         for i in table.find_all('tr'):
             columns = i.find_all('td')
             if not columns:
                 continue
             for j in columns:
-                if j.text.strip().replace('.', '').replace('-', '').isnumeric():  # todo replace with regex
-                    layer.append(j.text.strip())
-        if self.last_update[1:] == layer[1:]:
+                if j.text.strip().replace('.', '').replace('-', '').isnumeric():
+                    layer.append(float(j.text.strip()))
+        if self.last_update[self.nwd:] == layer[self.nwd:]:
             print('no change - dataframe not updated')
         else:
-            # todo update dataframe
-            # todo update csv
-            print(layer)
-            for i in range(1, self.last_update.__len__()):
+            # update dataframe
+            self.df.loc[len(self.df)] = dict(zip(self.categories, layer))
+            print('dataframe updated')
+            # update csv
+            self.df.to_csv('data.csv', sep=',', index=False, encoding='utf-8')
+            for i in range(self.nwd, self.last_update.__len__()):
                 if self.last_update[i] < layer[i]:  # increasing
                     if self.momentum[i] <= 0:
                         self.momentum[i] = 0
