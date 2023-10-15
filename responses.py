@@ -3,7 +3,9 @@ import discord
 import bot
 import main
 from datetime import datetime
+import matplotlib
 import matplotlib.pyplot as plt
+matplotlib.use("Agg")  # fix for 'Fail to allocate bitmap' error
 
 
 def handle_response(message) -> bool:
