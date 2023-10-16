@@ -1,10 +1,14 @@
+import re
+
 import discord
 
 import bot
 import main
 from datetime import datetime
+from rpy2 import robjects
 import matplotlib
 import matplotlib.pyplot as plt
+
 matplotlib.use("Agg")  # fix for 'Fail to allocate bitmap' error
 
 
@@ -36,7 +40,8 @@ def generate_repeating() -> discord.Embed:
     bot.embed = generate_embed(title=':newspaper2: :red_circle:  **Live report on ERCOT grid health**',
                                colour=discord.Colour.red(),
                                field_name='Vital indicators',
-                               field_values=get_data(tuple([main.data_class.nwd, main.data_class.nwd + 3, main.data_class.nwd + 5])),
+                               field_values=get_data(
+                                   tuple([main.data_class.nwd, main.data_class.nwd + 3, main.data_class.nwd + 5])),
                                footer='updated ' + get_formatted_time())
     return bot.embed
 
@@ -51,7 +56,8 @@ def generate_embed(title, colour, field_name, field_values, footer) -> discord.E
 
 
 def generate_warning() -> str:
-    return ':rotating_light: @everyone **POWER EMERGENCY**\nCurrent frequency: ' + main.data_class.last_update[main.data_class.nwd] + ' hertz'
+    return ':rotating_light: @everyone **POWER EMERGENCY**\nCurrent frequency: ' + main.data_class.last_update[
+        main.data_class.nwd] + ' hertz'
 
 
 def generate_help() -> bool:
@@ -67,13 +73,32 @@ def generate_help() -> bool:
 def get_data(spec=tuple(range(0, main.data_class.categories.__len__()))) -> str:
     data_str = ''
     d = main.data_class
-    for i in range(main.data_class.nwd, len(d.categories) - 5):  # -4 excludes DC data
+    pre = get_r_analysis()
+    for i in range(d.nwd, len(d.categories) - 5):  # -4 excludes DC data
         if i in spec:
-            data_str += '- ' + d.categories[i] + ': ' + str(d.last_update[i]) + ' ' + get_momentum_emoji(d.momentum[i])
-            if i == 1 and float(d.last_update[d.nwd]) < 59.7:
+            data_str += '- ' + d.categories[i] + ': ' + str(d.last_update[i])
+            if i != d.nwd + 3 and i != d.nwd + 5:
+                data_str += ' ' + get_momentum_emoji(d.momentum[i])
+            # warning
+            if i == d.nwd and float(d.last_update[d.nwd]) < 59.7:
                 data_str += ' :warning:'
+            # prediction
+            elif i == d.nwd + 3:
+                data_str += ' **-- proj. △ in 30m: ' + str(pre[0]) + '**'
+            elif i == d.nwd + 5:
+                data_str += ' **-- proj. △ in 30m: ' + str(pre[1]) + '**'
             data_str += '\n'
     return data_str
+
+
+def get_r_analysis() -> list:
+    capacity_script = open('capacity.R', 'r').read()
+    demand_script = open('demand.R', 'r').read()
+    capacity = robjects.r(f'''{capacity_script}''')
+    demand = robjects.r(f'''{demand_script}''')
+    c_thirty_pre = float(re.split('\s+', capacity.__str__().split('hourofday')[2])[1]) / 2  # prediction for 30 minutes
+    d_thirty_pre = float(re.split('\s+', demand.__str__().split('hourofday')[2])[1]) / 2  # prediction for 30 minutes
+    return [d_thirty_pre, c_thirty_pre]
 
 
 # UTIL METHODS #
