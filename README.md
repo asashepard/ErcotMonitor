@@ -1,15 +1,19 @@
 # ErcotMonitor
 
-I was inspired to create this bot in early 2022 when the electrical grid in Texas had been and would continue experiencing collapses or near misses:
-https://www.chron.com/weather/article/texas-power-grid-ercot-17662749.php
-
-Even recently and not in winter months, the grid often comes close to collapse: 
-https://www.expressnews.com/business/article/changes-required-head-problems-texas-electric-grid-18338302.php
+I was inspired to create this bot in early 2022 when Texas had been suffering power outages due to extreme weather.
 
 The bot can provide visual, numerical, and easy historical tracking of the values made public by ERCOT, listed by typing "!ercot" in a Discord server channel.
-![image](https://github.com/asashepard/ErcotMonitor/assets/78510770/bab952d3-7849-427d-ac2a-38b410436963)
 
-The bot also provides warnings when the frequency of the grid approaches a dangerous level.
-![image](https://github.com/asashepard/ErcotMonitor/assets/78510770/b9adb598-6070-4fae-a6f1-08fcd6d0ec69)
+![image](https://github.com/asashepard/ErcotMonitor/assets/78510770/acfa427e-c612-4c60-bc86-bfa5453c5530)
 
-I'm currently working on adding more analytical tools and customization and not worrying about whether the power will go out.
+By typing "!ercotcreate" a live report is created which updates itself once per minute. The predicted changes in capacity and demand are calculated using a multiple linear regression model through R.
+
+![image](https://github.com/asashepard/ErcotMonitor/assets/78510770/f6d9d108-0f9f-49f4-a36b-4ac7ad0576d4)
+
+The bot also provides warnings when the frequency of the grid, the best indicator for whether the grid is in danger of collapse, approaches a low level. For demo and testing purposes, the normal values of 59.7 Hz for the warning indicator and 59.4 Hz for the warning ping were set to higher values.
+
+![image](https://github.com/asashepard/ErcotMonitor/assets/78510770/d06b3bef-72d5-4e4a-b747-db30e17ad200)
+
+![image](https://github.com/asashepard/ErcotMonitor/assets/78510770/02873fea-3443-45fd-8385-0fe53f72ba57)
+
+For personal bot use, code can be compiled and hosted on any compatible computer or server.
