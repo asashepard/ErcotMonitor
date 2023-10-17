@@ -56,8 +56,8 @@ def generate_embed(title, colour, field_name, field_values, footer) -> discord.E
 
 
 def generate_warning() -> str:
-    return ':rotating_light: @everyone **POWER EMERGENCY**\nCurrent frequency: ' + main.data_class.last_update[
-        main.data_class.nwd] + ' hertz'
+    return ':rotating_light: @everyone **POWER EMERGENCY**\nCurrent frequency: ' + str(main.data_class.last_update[
+        main.data_class.nwd]) + ' hertz'
 
 
 def generate_help() -> bool:
