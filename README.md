@@ -2,11 +2,11 @@
 
 I was inspired to create this bot in early 2022 when Texas had been suffering power outages due to extreme weather.
 
-The bot can provide visual, numerical, and easy historical tracking of the values made public by ERCOT, listed by typing "!ercot" in a Discord server channel.
+The bot can provide visual, numerical, and easy historical tracking of the values made public by ERCOT, listed by typing "!ercot" in a Discord server channel. 
 
 ![image](https://github.com/asashepard/ErcotMonitor/assets/78510770/905cf8b2-1db9-4068-8e4a-a32f85e427ae)
 
-By typing "!ercotcreate" a live report is created which updates itself once per minute. The predicted changes in capacity and demand are calculated using a linear regression model through R.
+By typing "!ercotcreate" a live report is created which updates itself once per minute. The predicted changes in capacity and demand are calculated using a linear regression model through R. The 2-part pie chart illustrates how much larger the system's capacity is than its demand.
 
 ![image](https://github.com/asashepard/ErcotMonitor/assets/78510770/5531f679-65d2-464e-a26c-bee47a05b4f6)
 
